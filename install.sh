@@ -9,21 +9,23 @@ echo "🥐 Moradbakhti-KI Bäckerei Agent"
 echo "================================="
 echo ""
 
-# Plugin symlinks erstellen
-echo "📦 Plugin verlinken..."
+# Plugin kopieren (keine Symlinks — Hermes Distribution akzeptiert nur echte Dateien)
+echo "📦 Plugin kopieren..."
 for profile in kunden chef; do
+    rm -rf "$REPO_DIR/$profile/plugins"
     mkdir -p "$REPO_DIR/$profile/plugins"
-    ln -sfn "$REPO_DIR/plugin/moradbakhti-kmu" "$REPO_DIR/$profile/plugins/moradbakhti-kmu"
+    cp -r "$REPO_DIR/plugin/moradbakhti-kmu" "$REPO_DIR/$profile/plugins/"
+    find "$REPO_DIR/$profile/plugins" -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
 done
 
 # Profile installieren
 echo ""
 echo "👤 Kunden-Bot installieren..."
-hermes profile install "$REPO_DIR/kunden" --name "${1:-baeckerei}-kunden" --alias
+hermes profile install "$REPO_DIR/kunden" --name "${1:-baeckerei}-kunden" --alias -y
 
 echo ""
 echo "👨‍🍳 Chef-Bot installieren..."
-hermes profile install "$REPO_DIR/chef" --name "${1:-baeckerei}-chef" --alias
+hermes profile install "$REPO_DIR/chef" --name "${1:-baeckerei}-chef" --alias -y
 
 echo ""
 echo "✅ Fertig!"
