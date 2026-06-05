@@ -273,11 +273,10 @@ def on_pre_gateway_dispatch(event, gateway=None, session_store=None, **kwargs):
         chat_id = getattr(src, "chat_id", None) or getattr(src, "user_id", None)
     if not chat_id:
         chat_id = getattr(event, "chat_id", None) or getattr(event, "sender_id", None)
-    import sys
-    print(f"[moradbakhti-kmu] pre_gateway_dispatch: chat_id={chat_id!r}", file=sys.stderr, flush=True)
+    logger.debug("[moradbakhti-kmu] pre_gateway_dispatch: chat_id=%r", chat_id)
     if chat_id:
         _set_customer_id(str(chat_id))
-        print(f"[moradbakhti-kmu] pre_gateway_dispatch: SET customer_id={chat_id!r}", file=sys.stderr, flush=True)
+        logger.debug("[moradbakhti-kmu] pre_gateway_dispatch: SET customer_id=%r", chat_id)
 
     # Block dangerous slash commands for customers
     blocked = (text or "").strip().lower()

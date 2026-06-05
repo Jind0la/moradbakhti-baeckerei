@@ -50,6 +50,6 @@ git pull
 ## 📋 Voraussetzungen
 
 - Hermes Agent >= 0.15.0
-- Mistral AI API-Key (EU, DSGVO-konform)
+- DeepSeek API-Key (https://platform.deepseek.com/api_keys)
 - Zwei Telegram-Bot-Tokens (@BotFather)
 - Ein Verzeichnis für Kundendaten (z.B. `/opt/baeckerei-data`)

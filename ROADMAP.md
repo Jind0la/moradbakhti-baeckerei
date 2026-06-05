@@ -1,6 +1,6 @@
 # Moradbakhti-KI Bäckerei Agent — Production Roadmap
 
-Stand: 05.06.2026 | Plugin v2.1.0 | Distribution v2.1.0
+Stand: 05.06.2026 | Plugin v2.3.0 | Distribution v2.3.0
 
 ---
 
@@ -36,10 +36,10 @@ Stand: 05.06.2026 | Plugin v2.1.0 | Distribution v2.1.0
 - [ ] Test: Fremder Account → `tagesbestellungen` blockiert
 
 ### 1.2 Chef-Bot als separates Profil
-- [ ] Distribution-Repo `baeckerei-chef-agent` erstellen
-- [ ] Config: `platform_toolsets` NUR mit `tagesbestellungen` (keine Kunden-Tools)
-- [ ] SOUL.md: „Du bist der Chef-Assistent. Kein Kundenkontakt."
-- [ ] Gateway: separater Telegram-Bot oder gleicher Bot mit Chat-ID-Filter
+- [x] Distribution `chef/` im Monorepo (config.yaml + SOUL.md + distribution.yaml)
+- [x] Config: `platform_toolsets` NUR mit `moradbakhti_kmu_chef` (keine Kunden-Tools)
+- [x] SOUL.md: „Du bist der Chef-Assistent. Kein Kundenkontakt."
+- [x] Gateway: separater Telegram-Bot via eigenen Token
 
 ### 1.3 SOUL.md finalisieren
 - [ ] Bäckerei-Daten (Name, Adresse, Öffnungszeiten) als variables Template
@@ -119,8 +119,8 @@ sqlite3 /opt/baeckerei-data/kunden.db "SELECT COUNT(*) FROM bestellungen"  # →
 
 ## 🔗 Links
 
-- **Distribution:** https://github.com/Jind0la/baeckerei-agent
-- **Plugin:** `~/.hermes/plugins/moradbakhti-kmu/`
+- **Distribution:** https://github.com/Jind0la/moradbakhti-baeckerei
+- **Plugin:** `plugin/moradbakhti-kmu/` (im Repo)
 - **Skill:** `hermes-plugin-authoring`
 - **Doku:** `hermes-white-label` Skill
 
@@ -130,8 +130,9 @@ sqlite3 /opt/baeckerei-data/kunden.db "SELECT COUNT(*) FROM bestellungen"  # →
 
 | Datum | Version | Was |
 |---|---|---|
-| 05.06. | v2.1.0 | tagesbestellungen (Chef-Tool) |
-| 05.06. | v2.0.0 | SQLite-Kundendatenbank |
+| 05.06. | v2.3.0 | Review-Fixes: personality, .env, Versionen, Debug-Prints, bestellung_aendern in plugin.yaml |
+| 05.06. | v2.2.0 | tagesbestellungen (Chef-Tool), bestellung_aendern |
+| 05.06. | v2.1.0 | SQLite-Kundendatenbank |
 | 05.06. | v1.1.2 | platform_toolsets auf 4 reduziert |
 | 05.06. | v1.1.0 | pre_tool_call Datenschutz-Hook |
 | 05.06. | v1.0.0 | Initial (2 Tools, 4 Hooks, 1 Skill) |

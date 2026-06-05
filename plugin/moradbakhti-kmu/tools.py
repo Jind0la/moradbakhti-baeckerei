@@ -131,9 +131,7 @@ def meine_bestellungen(args: dict, **kwargs) -> str:
     del kwargs
 
     customer_id = _get_customer_id()
-    # DEBUG
-    import sys
-    print(f"[moradbakhti-kmu] meine_bestellungen: _get_customer_id()={customer_id!r}", file=sys.stderr, flush=True)
+    logger.debug("[moradbakhti-kmu] meine_bestellungen: customer_id=%r", customer_id)
     if not customer_id:
         import os as _os
         customer_id = _os.environ.get("KMU_TEST_CUSTOMER_ID")
