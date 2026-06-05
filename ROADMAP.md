@@ -9,11 +9,18 @@ Stand: 05.06.2026 | Plugin v2.1.0 | Distribution v2.1.0
 - [x] `bestellung_aufnehmen` — Bestellungen in SQLite
 - [x] `meine_bestellungen` — Kunde sieht nur eigene
 - [x] `preise_abfragen` — Preise aus produkte.md (keine Halluzination)
-- [x] `tagesbestellungen` — Chef-Tagesübersicht (auth-gated)
-- [x] Stammkunden-Erkennung per Chat-ID
-- [x] 5-Layer-Defense (Injection, Datenschutz, Anti-Halluzination)
-- [x] Distribution-Repo auf GitHub (`hermes profile install`)
-- [x] CLI-End-to-End-Test bestanden (2 Kunden + Chef)
+- [x] `tagesbestellungen` — Chef-Tagesübersicht
+- [x] `bestellung_aendern` — Chef: Bestellungen ändern (Produkt, Menge, Abholzeit)
+- [x] `abholzeit` — Kunde kann Abholzeit angeben
+- [x] Stammkunden-Erkennung per chat_id (via `event.source.chat_id`)
+- [x] 5-Layer-Defense (Injection, Datenschutz, Anti-Halluzination, Slash-Command-Block)
+- [x] Monorepo auf GitHub: `Jind0la/moradbakhti-baeckerei`
+- [x] `install.sh` — 1 Befehl, 2 Profile
+- [x] Toolset-Trennung: `moradbakhti_kmu_kunden` ↔ `moradbakhti_kmu_chef`
+- [x] Gateway-Test: Kunden-Bot + Chef-Bot live auf Telegram getestet
+- [x] DeepSeek v4 Flash als Model
+- [x] Session-Reset: 60 Min Inaktivität
+- [x] Approvals off + `/new`/`/reset`/`/clear` geblockt
 
 ---
 

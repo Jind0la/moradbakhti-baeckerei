@@ -43,6 +43,13 @@ BESTELLUNG_AUFNEHMEN = {
                 "type": "string",
                 "description": "Optionale Zusatznotiz (Allergene, Sonderwünsche)",
             },
+            "abholzeit": {
+                "type": "string",
+                "description": (
+                    "Optionale Abholzeit (z.B. '10:00', 'vormittags', 'nach 14 Uhr'). "
+                    "NUR erfragen wenn der Kunde eine bestimmte Uhrzeit nennt."
+                ),
+            },
         },
         "required": ["produkt", "datum"],
     },
@@ -118,5 +125,35 @@ TAGESBESTELLUNGEN = {
             },
         },
         "required": [],
+    },
+}
+
+BESTELLUNG_AENDERN = {
+    "name": "bestellung_aendern",
+    "description": (
+        "Eine bestehende Bestellung ändern — NUR für den Inhaber. "
+        "Du brauchst die Bestell-ID (aus der Tagesübersicht). "
+        "Änderbare Felder: produkt, menge, abholdatum, abholzeit, notiz. "
+        "Verwende dieses Tool wenn der Chef sagt: 'Ändere Bestellung Nr. 3 auf 10 Brötchen' "
+        "oder 'Schieb Bestellung 5 auf 14 Uhr'."
+    ),
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "bestell_id": {
+                "type": "integer",
+                "description": "ID der Bestellung (aus tagesbestellungen)",
+            },
+            "feld": {
+                "type": "string",
+                "enum": ["produkt", "menge", "abholdatum", "abholzeit", "notiz"],
+                "description": "Welches Feld soll geändert werden?",
+            },
+            "wert": {
+                "type": "string",
+                "description": "Neuer Wert für das Feld",
+            },
+        },
+        "required": ["bestell_id", "feld", "wert"],
     },
 }

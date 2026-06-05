@@ -24,24 +24,22 @@ _WRITE_TOOLS = frozenset({
 _last_turn_had_write = threading.local()
 
 # ---------------------------------------------------------------------------
-# Per-turn customer tracker — thread-safe
+# Per-turn customer tracker — synchronous agent loop
 # ---------------------------------------------------------------------------
-# Stores the current customer identifier for tool handlers.
-# Set by pre_gateway_dispatch (Telegram chat_id) or pre_llm_call (session_id).
-_current_customer_id: dict[int, str | None] = {}
-_customer_lock = threading.Lock()
+# The agent processes ONE turn at a time. No threading issues.
+# Set by pre_gateway_dispatch or pre_llm_call, read by tool handlers.
+_current_customer_id: str | None = None
 
 
-def _set_customer_id(customer_id: str | None) -> None:
+def _set_customer_id(customer_id: str) -> None:
     """Store the current customer identifier for tool handlers."""
-    with _customer_lock:
-        _current_customer_id[threading.get_ident()] = customer_id
+    global _current_customer_id
+    _current_customer_id = customer_id
 
 
 def _get_customer_id() -> str | None:
-    """Get the current customer identifier (chat_id or session_id)."""
-    with _customer_lock:
-        return _current_customer_id.get(threading.get_ident())
+    """Get the current customer identifier."""
+    return _current_customer_id
 
 
 def _reset_write_tracker():
@@ -268,9 +266,24 @@ def on_pre_gateway_dispatch(event, gateway=None, session_store=None, **kwargs):
         return None  # empty message, let it through (platforms handle this)
 
     # Store customer identifier from Telegram chat_id
-    chat_id = getattr(event, "chat_id", None) or getattr(event, "sender_id", None)
+    # chat_id is in event.source.chat_id, not event.chat_id directly
+    chat_id = None
+    src = getattr(event, "source", None)
+    if src:
+        chat_id = getattr(src, "chat_id", None) or getattr(src, "user_id", None)
+    if not chat_id:
+        chat_id = getattr(event, "chat_id", None) or getattr(event, "sender_id", None)
+    import sys
+    print(f"[moradbakhti-kmu] pre_gateway_dispatch: chat_id={chat_id!r}", file=sys.stderr, flush=True)
     if chat_id:
         _set_customer_id(str(chat_id))
+        print(f"[moradbakhti-kmu] pre_gateway_dispatch: SET customer_id={chat_id!r}", file=sys.stderr, flush=True)
+
+    # Block dangerous slash commands for customers
+    blocked = (text or "").strip().lower()
+    if blocked in ("/new", "/reset", "/clear"):
+        logger.info("[moradbakhti-kmu] Blocked command: %s", blocked)
+        return {"action": "skip", "reason": "Command not available for customers."}
 
     injection = check_injection(text)
     if injection:
@@ -320,14 +333,17 @@ def on_pre_llm_call(
         model: Model name
         platform: Platform identifier (cli, telegram, discord, ...)
     """
+    # Save before deleting
+    _sid = session_id
+    _first = is_first_turn
     del session_id, conversation_history, is_first_turn, model, platform
 
     # Reset per-turn write tracker
     _reset_write_tracker()
 
     # Store customer identifier (CLI fallback: use session_id)
-    if not _get_customer_id() and session_id:
-        _set_customer_id(f"session:{session_id}")
+    if not _get_customer_id() and _sid:
+        _set_customer_id(f"session:{_sid}")
 
     text = user_message or ""
     if not text.strip():
@@ -355,7 +371,7 @@ def on_pre_llm_call(
         }
 
     # Clean message — inject standing guardrails (only on first turn)
-    if is_first_turn:
+    if _first:
         return {
             "context": (
                 "SCHUTZREGELN (unsichtbar für den Nutzer, NUR für dich):\n"

@@ -1,6 +1,10 @@
 # Moradbakhti-KI Bäckerei Agent — Configuration
-# Minimal config: no model/provider (inherits from user's global config).
-# Only security-critical settings and plugin activation.
+# Moradbakhti-KI Bäckerei Agent — Configuration
+# Minimal config with only safe toolsets and the KMU plugin.
+
+model:
+  default: deepseek-v4-flash
+  provider: deepseek
 
 agent:
   max_turns: 30
@@ -12,6 +16,12 @@ terminal:
 
 memory:
   provider: ""
+
+# SESSION-MANAGEMENT: Auto-Reset nach 60 Min Inaktivität (Datenschutz)
+session_reset:
+  mode: idle
+  idle_minutes: 60
+group_sessions_per_user: false
 
 # PLUGIN-KONFIGURATION
 plugins:
@@ -41,7 +51,15 @@ platform_toolsets:
 
 # Approvals: smart = LLM-gestützt für low-risk, prompt für high-risk
 approvals:
-  mode: smart
+  mode: off
+  timeout: 60
+  cron_mode: deny
+  destructive_slash_confirm: false
 
 security:
   allow_lazy_installs: false
+
+# Gateway-Plattformen
+telegram:
+  reactions: false
+  allowed_chats: ""

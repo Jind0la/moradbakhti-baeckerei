@@ -4,7 +4,6 @@ Customer and order storage — replaces flat-file bestellungen/.
 Thread-safe, auto-creates tables, uses KMU_DATA_DIR for DB location.
 """
 
-import json
 import os
 import sqlite3
 import threading
@@ -18,14 +17,10 @@ def _get_db_path() -> Path:
     return Path(data_dir) / "kunden.db"
 
 
-# ---------------------------------------------------------------------------
-# Thread-local connections (SQLite requires same-thread usage)
-# ---------------------------------------------------------------------------
 _connections = threading.local()
 
 
 def _get_conn() -> sqlite3.Connection:
-    """Get or create a thread-local SQLite connection."""
     if not hasattr(_connections, "conn") or _connections.conn is None:
         db_path = _get_db_path()
         db_path.parent.mkdir(parents=True, exist_ok=True)
@@ -39,7 +34,6 @@ def _get_conn() -> sqlite3.Connection:
 
 
 def _ensure_tables(conn: sqlite3.Connection) -> None:
-    """Create tables if they don't exist (idempotent)."""
     conn.executescript("""
         CREATE TABLE IF NOT EXISTS kunden (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -55,6 +49,7 @@ def _ensure_tables(conn: sqlite3.Connection) -> None:
             produkt TEXT NOT NULL,
             menge INTEGER NOT NULL DEFAULT 1,
             abholdatum TEXT NOT NULL,
+            abholzeit TEXT,
             notiz TEXT,
             erstellt_am TEXT NOT NULL DEFAULT (datetime('now','localtime'))
         );
@@ -62,29 +57,23 @@ def _ensure_tables(conn: sqlite3.Connection) -> None:
         CREATE INDEX IF NOT EXISTS idx_bestellungen_kunde
             ON bestellungen(kunde_id, abholdatum);
     """)
+    try:
+        conn.execute("ALTER TABLE bestellungen ADD COLUMN abholzeit TEXT")
+    except sqlite3.OperationalError:
+        pass
     conn.commit()
 
-
-# ---------------------------------------------------------------------------
-# Public API
-# ---------------------------------------------------------------------------
 
 def kunde_lookup_or_create(
     chat_id: str, name: Optional[str] = None, telefon: Optional[str] = None
 ) -> dict:
-    """Find existing customer by chat_id, or create a new one.
-
-    Returns dict with keys: id, chat_id, name, telefon, erstellt_am, is_new
-    """
     conn = _get_conn()
-
     row = conn.execute(
         "SELECT id, chat_id, name, telefon, erstellt_am FROM kunden WHERE chat_id = ?",
         (chat_id,),
     ).fetchone()
 
     if row:
-        # Existing customer — update name/telefon if provided
         updates = []
         params = []
         if name and name != row["name"]:
@@ -110,7 +99,6 @@ def kunde_lookup_or_create(
             "is_new": False,
         }
 
-    # New customer
     if not name:
         return {"error": "Name erforderlich für neue Kunden."}
     if not telefon:
@@ -137,14 +125,14 @@ def bestellung_einfuegen(
     produkt: str,
     menge: int,
     abholdatum: str,
+    abholzeit: Optional[str] = None,
     notiz: Optional[str] = None,
 ) -> dict:
-    """Insert a new order. Returns the created row as dict."""
     conn = _get_conn()
     cursor = conn.execute(
-        "INSERT INTO bestellungen (kunde_id, produkt, menge, abholdatum, notiz) "
-        "VALUES (?, ?, ?, ?, ?)",
-        (kunde_id, produkt, menge, abholdatum, notiz or None),
+        "INSERT INTO bestellungen (kunde_id, produkt, menge, abholdatum, abholzeit, notiz) "
+        "VALUES (?, ?, ?, ?, ?, ?)",
+        (kunde_id, produkt, menge, abholdatum, abholzeit or None, notiz or None),
     )
     conn.commit()
     return {
@@ -153,48 +141,71 @@ def bestellung_einfuegen(
         "produkt": produkt,
         "menge": menge,
         "abholdatum": abholdatum,
+        "abholzeit": abholzeit or None,
         "notiz": notiz or None,
     }
 
 
 def meine_bestellungen(chat_id: str, abholdatum: Optional[str] = None) -> list[dict]:
-    """Get all orders for a customer, optionally filtered by date."""
     conn = _get_conn()
-
     kunde = conn.execute(
         "SELECT id FROM kunden WHERE chat_id = ?", (chat_id,)
     ).fetchone()
-
     if not kunde:
         return []
 
     if abholdatum:
         rows = conn.execute(
-            "SELECT id, produkt, menge, abholdatum, notiz, erstellt_am "
+            "SELECT id, produkt, menge, abholdatum, abholzeit, notiz, erstellt_am "
             "FROM bestellungen WHERE kunde_id = ? AND abholdatum = ? "
             "ORDER BY erstellt_am DESC",
             (kunde["id"], abholdatum),
         ).fetchall()
     else:
         rows = conn.execute(
-            "SELECT id, produkt, menge, abholdatum, notiz, erstellt_am "
+            "SELECT id, produkt, menge, abholdatum, abholzeit, notiz, erstellt_am "
             "FROM bestellungen WHERE kunde_id = ? "
             "ORDER BY erstellt_am DESC LIMIT 20",
             (kunde["id"],),
         ).fetchall()
-
     return [dict(r) for r in rows]
 
 
 def tagesbestellungen(abholdatum: str) -> list[dict]:
-    """Get ALL orders for a specific date (for the business owner)."""
     conn = _get_conn()
     rows = conn.execute(
-        "SELECT b.id, b.produkt, b.menge, b.abholdatum, b.notiz, b.erstellt_am, "
+        "SELECT b.id, b.produkt, b.menge, b.abholdatum, b.abholzeit, b.notiz, b.erstellt_am, "
         "k.name as kunden_name, k.telefon "
         "FROM bestellungen b JOIN kunden k ON b.kunde_id = k.id "
         "WHERE b.abholdatum = ? "
-        "ORDER BY b.erstellt_am",
+        "ORDER BY b.abholzeit, b.erstellt_am",
         (abholdatum,),
     ).fetchall()
     return [dict(r) for r in rows]
+
+
+def bestellung_aendern(bestell_id: int, feld: str, wert: str) -> dict:
+    """Update a single field on an existing order. Returns the updated row."""
+    allowed = {"produkt", "menge", "abholdatum", "abholzeit", "notiz"}
+    if feld not in allowed:
+        return {"error": f"Feld '{feld}' nicht änderbar. Erlaubt: {', '.join(sorted(allowed))}"}
+
+    conn = _get_conn()
+    row = conn.execute(
+        "SELECT id FROM bestellungen WHERE id = ?", (bestell_id,)
+    ).fetchone()
+    if not row:
+        return {"error": f"Bestellung #{bestell_id} nicht gefunden."}
+
+    conn.execute(
+        f"UPDATE bestellungen SET {feld} = ? WHERE id = ?",
+        (wert, bestell_id),
+    )
+    conn.commit()
+
+    updated = conn.execute(
+        "SELECT b.*, k.name as kunden_name FROM bestellungen b "
+        "JOIN kunden k ON b.kunde_id = k.id WHERE b.id = ?",
+        (bestell_id,),
+    ).fetchone()
+    return {"success": True, "bestellung": dict(updated)}

@@ -64,6 +64,17 @@ def register(ctx):
         ),
     )
 
+    ctx.register_tool(
+        name="bestellung_aendern",
+        toolset="moradbakhti_kmu_chef",
+        schema=schemas.BESTELLUNG_AENDERN,
+        handler=tools.bestellung_aendern,
+        description=(
+            "Bestehende Bestellung ändern — NUR für den Inhaber. "
+            "Änderbare Felder: produkt, menge, abholdatum, abholzeit, notiz."
+        ),
+    )
+
     # --- Hooks (5-Layer Defense — aktiv für beide Profile) ---
     ctx.register_hook("pre_tool_call", hooks.on_pre_tool_call)
     ctx.register_hook("pre_gateway_dispatch", hooks.on_pre_gateway_dispatch)
@@ -82,6 +93,6 @@ def register(ctx):
                 logger.info("[moradbakhti-kmu] Registered skill: %s", child.name)
 
     logger.info(
-        "[moradbakhti-kmu] v2.2.0 loaded — "
-        "4 tools (2 toolsets), 5 hooks, 1 skill"
+        "[moradbakhti-kmu] v2.3.0 loaded — "
+        "5 tools (2 toolsets), 5 hooks, 1 skill"
     )

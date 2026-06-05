@@ -45,6 +45,7 @@ def bestellung_aufnehmen(args: dict, **kwargs) -> str:
     menge = args.get("menge") or 1
     telefon = (args.get("telefon") or "").strip()
     notiz = (args.get("notiz") or "").strip()
+    abholzeit = (args.get("abholzeit") or "").strip() or None
 
     customer_id = _get_customer_id()
     if not customer_id:
@@ -94,7 +95,7 @@ def bestellung_aufnehmen(args: dict, **kwargs) -> str:
         })
 
     # Insert order
-    order = db.bestellung_einfuegen(kunde["id"], produkt, menge, datum_str, notiz or None)
+    order = db.bestellung_einfuegen(kunde["id"], produkt, menge, datum_str, abholzeit, notiz or None)
 
     return json.dumps({
         "success": True,
@@ -104,6 +105,7 @@ def bestellung_aufnehmen(args: dict, **kwargs) -> str:
             "produkt": produkt,
             "menge": menge,
             "datum": datum_str,
+            "abholzeit": abholzeit,
             "telefon": kunde["telefon"],
             "notiz": notiz or None,
         },
@@ -129,6 +131,9 @@ def meine_bestellungen(args: dict, **kwargs) -> str:
     del kwargs
 
     customer_id = _get_customer_id()
+    # DEBUG
+    import sys
+    print(f"[moradbakhti-kmu] meine_bestellungen: _get_customer_id()={customer_id!r}", file=sys.stderr, flush=True)
     if not customer_id:
         import os as _os
         customer_id = _os.environ.get("KMU_TEST_CUSTOMER_ID")
@@ -239,26 +244,10 @@ def preise_abfragen(args: dict, **kwargs) -> str:
 def tagesbestellungen(args: dict, **kwargs) -> str:
     """Show ALL orders for a date — owner only.
 
-    Auth check: only allowed chat_ids (from KMU_CHEF_CHAT_IDS env var)
-    or CLI mode can access. Regular customers get an auth error.
+    Access controlled via platform_toolsets: only the Chef-Bot has
+    the moradbakhti_kmu_chef toolset with this tool.
     """
     del kwargs
-
-    # Auth gate
-    customer_id = _get_customer_id()
-    is_cli = not customer_id or customer_id.startswith("cli:")
-    allowed = set()
-
-    if not is_cli:
-        import os as _os
-        chef_ids = _os.environ.get("KMU_CHEF_CHAT_IDS", "")
-        allowed = {cid.strip() for cid in chef_ids.split(",") if cid.strip()}
-
-        if customer_id not in allowed:
-            return json.dumps({
-                "success": False,
-                "error": "Zugriff verweigert. Diese Funktion ist nur für den Inhaber.",
-            })
 
     # Date logic
     from datetime import date as _date
@@ -287,9 +276,37 @@ def tagesbestellungen(args: dict, **kwargs) -> str:
                 "produkt": o["produkt"],
                 "menge": o["menge"],
                 "telefon": o["telefon"],
+                "abholzeit": o.get("abholzeit"),
                 "uhrzeit": o["erstellt_am"],
                 "notiz": o.get("notiz"),
             }
             for o in orders
         ],
     })
+
+
+# ---------------------------------------------------------------------------
+# bestellung_aendern — Chef-Tool
+# ---------------------------------------------------------------------------
+
+
+def bestellung_aendern(args: dict, **kwargs) -> str:
+    """Update an existing order — owner only."""
+    del kwargs
+
+    bestell_id = args.get("bestell_id")
+    feld = (args.get("feld") or "").strip().lower()
+    wert = (args.get("wert") or "").strip()
+
+    if not bestell_id:
+        return json.dumps({"success": False, "error": "bestell_id fehlt"})
+    if not feld:
+        return json.dumps({"success": False, "error": "feld fehlt"})
+
+    try:
+        bestell_id = int(bestell_id)
+    except (TypeError, ValueError):
+        return json.dumps({"success": False, "error": "bestell_id muss eine Zahl sein"})
+
+    result = db.bestellung_aendern(bestell_id, feld, wert)
+    return json.dumps(result)

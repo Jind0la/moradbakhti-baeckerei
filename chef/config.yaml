@@ -1,9 +1,12 @@
 # Moradbakhti-KI Bäckerei Chef-Agent — Configuration
-# Minimal config: only chef tools, no customer-facing tools.
+# Nur Chef-Tools, kein Kunden-Zugriff.
+
+model:
+  default: deepseek-v4-flash
+  provider: deepseek
 
 agent:
   max_turns: 30
-  personality: ""
 
 terminal:
   backend: local
@@ -11,6 +14,12 @@ terminal:
 
 memory:
   provider: ""
+
+# SESSION-MANAGEMENT
+session_reset:
+  mode: idle
+  idle_minutes: 60
+group_sessions_per_user: false
 
 # PLUGIN-KONFIGURATION
 plugins:
@@ -38,7 +47,15 @@ platform_toolsets:
     - moradbakhti_kmu_chef
 
 approvals:
-  mode: smart
+  mode: off
+  timeout: 60
+  cron_mode: deny
+  destructive_slash_confirm: false
 
 security:
   allow_lazy_installs: false
+
+# Gateway-Plattformen
+telegram:
+  reactions: false
+  allowed_chats: ""
