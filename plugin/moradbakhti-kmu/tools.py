@@ -275,7 +275,7 @@ def tagesbestellungen(args: dict, **kwargs) -> str:
                 "menge": o["menge"],
                 "telefon": o["telefon"],
                 "abholzeit": o.get("abholzeit"),
-                "uhrzeit": o["erstellt_am"],
+                "erstellt_am": o["erstellt_am"],
                 "notiz": o.get("notiz"),
             }
             for o in orders

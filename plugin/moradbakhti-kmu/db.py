@@ -143,6 +143,7 @@ def bestellung_einfuegen(
         "abholdatum": abholdatum,
         "abholzeit": abholzeit or None,
         "notiz": notiz or None,
+        "erstellt_am": datetime.now().strftime("%Y-%m-%d %H:%M"),
     }
 
 

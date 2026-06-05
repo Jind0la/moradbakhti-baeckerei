@@ -7,6 +7,7 @@ These are NOT behavioral (SOUL.md) — they are enforceable gates.
 import logging
 import re
 import threading
+from typing import Optional
 
 logger = logging.getLogger(__name__)
 
@@ -28,7 +29,7 @@ _last_turn_had_write = threading.local()
 # ---------------------------------------------------------------------------
 # The agent processes ONE turn at a time. No threading issues.
 # Set by pre_gateway_dispatch or pre_llm_call, read by tool handlers.
-_current_customer_id: str | None = None
+_current_customer_id: Optional[str] = None
 
 
 def _set_customer_id(customer_id: str) -> None:
@@ -37,7 +38,7 @@ def _set_customer_id(customer_id: str) -> None:
     _current_customer_id = customer_id
 
 
-def _get_customer_id() -> str | None:
+def _get_customer_id() -> Optional[str]:
     """Get the current customer identifier."""
     return _current_customer_id
 
@@ -90,7 +91,7 @@ _FALSE_CLAIM_PATTERNS: list[re.Pattern] = [
 ]
 
 
-def _check_false_claim(response_text: str) -> str | None:
+def _check_false_claim(response_text: str) -> Optional[str]:
     """Check if the response claims a write happened when it didn't.
 
     Returns a warning string to append, or None if the claim is legitimate.
@@ -220,7 +221,7 @@ _INJECTION_PATTERNS: list[tuple[re.Pattern, str, str]] = [
 ]
 
 
-def check_injection(text: str) -> dict | None:
+def check_injection(text: str) -> Optional[dict]:
     """Scan a message for prompt injection patterns.
 
     Returns:

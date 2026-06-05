@@ -21,30 +21,29 @@ Stand: 05.06.2026 | Plugin v2.3.0 | Distribution v2.3.0
 - [x] DeepSeek v4 Flash als Model
 - [x] Session-Reset: 60 Min Inaktivität
 - [x] Approvals off + `/new`/`/reset`/`/clear` geblockt
+- [x] 19 Unit-Tests (db, tools, hooks injection) — `pytest tests/`
+- [x] Python 3.9-Kompatibilität (`str | None` → `Optional[str]`)
 
 ---
 
 ## 🔴 PRIO 1 — Vor erstem Kunden
 
-### 1.1 Gateway-Test (Telegram)
-- [ ] Telegram-Bot mit @BotFather erstellen
-- [ ] Token in `.env` eintragen
-- [ ] `gateway setup` + `gateway start`
-- [ ] Test: Bestellung von echtem Telegram-Account
-- [ ] Test: Zweiter Account → andere Session, keine Daten-Leaks
-- [ ] Test: Chef-Account in `KMU_CHEF_CHAT_IDS` → Tagesübersicht
-- [ ] Test: Fremder Account → `tagesbestellungen` blockiert
+### 1.1 Produktions-Gateway-Test
+- [ ] Echten Telegram-Bot mit @BotFather erstellen und Token konfigurieren
+- [ ] `gateway start` auf Server (nicht lokal) → Stabilität über 24h testen
+- [ ] Test: Zwei echte Accounts bestellen → Isolation verifizieren
+- [ ] Test: Unbekannter Account → `tagesbestellungen` wird geblockt
+- [ ] Test: Prompt-Injection wird aktiv abgefangen (nicht nur im Unit-Test)
 
-### 1.2 Chef-Bot als separates Profil
-- [x] Distribution `chef/` im Monorepo (config.yaml + SOUL.md + distribution.yaml)
-- [x] Config: `platform_toolsets` NUR mit `moradbakhti_kmu_chef` (keine Kunden-Tools)
-- [x] SOUL.md: „Du bist der Chef-Assistent. Kein Kundenkontakt."
-- [x] Gateway: separater Telegram-Bot via eigenen Token
+### 1.2 Chef-Auth (Code-Änderung)
+- [ ] `KMU_CHEF_CHAT_IDS` in hooks.py aus `.env` lesen
+- [ ] `tagesbestellungen` + `bestellung_aendern`: Zugriff nur für Chef-Chat-IDs
+- [ ] Log-Warnung bei unbefugtem Zugriffsversuch
 
 ### 1.3 SOUL.md finalisieren
-- [ ] Bäckerei-Daten (Name, Adresse, Öffnungszeiten) als variables Template
-- [ ] README.md im Repo: „So passt du den Bot an deine Bäckerei an"
-- [ ] Deutsche Umlaute, Sonderzeichen in Öffnungszeiten testen
+- [ ] Echte Bäckerei-Daten (Name, Adresse, Öffnungszeiten, Produkte) einfüllen
+- [ ] Test: Umlaute/Sonderzeichen in Öffnungszeiten korrekt ausgegeben
+- [ ] Test: Bot nennt korrekte Produkte aus `produkte.md`
 
 ---
 
