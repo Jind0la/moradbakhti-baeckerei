@@ -1,0 +1,17 @@
+name: moradbakhti-kmu
+version: 2.2.0
+description: "Moradbakhti-KI KMU Plugin — SQLite-Kundendatenbank, Bestellungen, Preise, Chef-Tools, 5-Layer-Defense. Getrennte Toolsets: kunden + chef."
+author: Moradbakhti-KI
+provides_tools:
+  - bestellung_aufnehmen
+  - meine_bestellungen
+  - preise_abfragen
+  - tagesbestellungen
+provides_hooks:
+  - pre_tool_call
+  - pre_gateway_dispatch
+  - pre_llm_call
+  - post_tool_call
+  - transform_llm_output
+provides_skills:
+  - kmu-bestellprozess

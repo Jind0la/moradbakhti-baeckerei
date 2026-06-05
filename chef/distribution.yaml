@@ -1,0 +1,23 @@
+name: baeckerei-chef-agent
+version: 1.0.0
+description: "Chef-Assistent für Bäckereien — Tagesübersicht, Bestellungs-Management. Moradbakhti-KI."
+author: "Moradbakhti-KI"
+license: "proprietary"
+hermes_requires: ">=0.15.0"
+
+env_requires:
+  - name: MISTRAL_API_KEY
+    description: "Mistral AI API-Key (EU-Provider, DSGVO-konform)"
+    required: true
+  - name: TELEGRAM_BOT_TOKEN
+    description: "Telegram Bot Token für den Chef-Bot (SEPARATER Bot!)"
+    required: false
+  - name: KMU_DATA_DIR
+    description: "Verzeichnis für Produkte und Bestellungen (gleiches wie Kunden-Bot!)"
+    required: true
+
+distribution_owned:
+  - SOUL.md
+  - config.yaml
+  - plugins/
+  - distribution.yaml

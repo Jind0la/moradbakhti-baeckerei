@@ -1,0 +1,47 @@
+# Moradbakhti-KI Bäckerei Agent — Configuration
+# Minimal config: no model/provider (inherits from user's global config).
+# Only security-critical settings and plugin activation.
+
+agent:
+  max_turns: 30
+  personality: ""
+
+terminal:
+  backend: local
+  timeout: 180
+
+memory:
+  provider: ""
+
+# PLUGIN-KONFIGURATION
+plugins:
+  enabled:
+    - moradbakhti-kmu
+  disabled: []
+
+# BEKANNTE PLUGIN-TOOLSETS (von Hermes auto-gefüllt, hier manuell vorgesetzt)
+known_plugin_toolsets:
+  cli:
+    - moradbakhti_kmu_kunden
+  telegram:
+    - moradbakhti_kmu_kunden
+
+# SICHERHEIT: NUR diese Toolsets (KEIN terminal, delegation, browser, etc.)
+platform_toolsets:
+  cli:
+    - clarify
+    - messaging
+    - tts
+    - moradbakhti_kmu_kunden
+  telegram:
+    - clarify
+    - messaging
+    - tts
+    - moradbakhti_kmu_kunden
+
+# Approvals: smart = LLM-gestützt für low-risk, prompt für high-risk
+approvals:
+  mode: smart
+
+security:
+  allow_lazy_installs: false

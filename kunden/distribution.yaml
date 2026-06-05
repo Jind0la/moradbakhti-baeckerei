@@ -1,0 +1,23 @@
+name: baeckerei-agent
+version: 1.0.0
+description: "KI-Assistent für Bäckereien — Bestellungen, Preise, 4-Layer-Defense. Moradbakhti-KI."
+author: "Moradbakhti-KI"
+license: "proprietary"
+hermes_requires: ">=0.15.0"
+
+env_requires:
+  - name: MISTRAL_API_KEY
+    description: "Mistral AI API-Key (EU-Provider, DSGVO-konform)"
+    required: true
+  - name: TELEGRAM_BOT_TOKEN
+    description: "Telegram Bot Token von @BotFather"
+    required: false
+  - name: KMU_DATA_DIR
+    description: "Verzeichnis für Produkte und Bestellungen (z.B. /opt/baeckerei-data)"
+    required: true
+
+distribution_owned:
+  - SOUL.md
+  - config.yaml
+  - plugins/
+  - distribution.yaml

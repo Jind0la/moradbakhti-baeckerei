@@ -1,0 +1,44 @@
+# Moradbakhti-KI Bäckerei Chef-Agent — Configuration
+# Minimal config: only chef tools, no customer-facing tools.
+
+agent:
+  max_turns: 30
+  personality: ""
+
+terminal:
+  backend: local
+  timeout: 180
+
+memory:
+  provider: ""
+
+# PLUGIN-KONFIGURATION
+plugins:
+  enabled:
+    - moradbakhti-kmu
+  disabled: []
+
+known_plugin_toolsets:
+  cli:
+    - moradbakhti_kmu_chef
+  telegram:
+    - moradbakhti_kmu_chef
+
+# SICHERHEIT: NUR Chef-Toolsets — KEINE Kunden-Tools!
+platform_toolsets:
+  cli:
+    - clarify
+    - messaging
+    - tts
+    - moradbakhti_kmu_chef
+  telegram:
+    - clarify
+    - messaging
+    - tts
+    - moradbakhti_kmu_chef
+
+approvals:
+  mode: smart
+
+security:
+  allow_lazy_installs: false
